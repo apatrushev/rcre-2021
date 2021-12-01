@@ -6,3 +6,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cortex-m-rt = "0.6.15"
+stm32f3 = { version = "0.14.0", features = ["stm32f303"] }
+stm32f3-discovery = "0.7.2"
