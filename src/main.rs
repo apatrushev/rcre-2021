@@ -1,18 +1,31 @@
 #![no_std]
 #![no_main]
-#![allow(unused_imports)]
 
-use core::panic::PanicInfo;
-use stm32f3;
-use stm32f3_discovery::{
-    leds::Leds,
-    stm32f3xx_hal::{pac, prelude::*},
-    switch_hal::ToggleableOutputSwitch,
+use core::{
+    panic::PanicInfo,
+    sync::atomic::{AtomicBool, Ordering},
 };
+use stm32f3 as _;
+use stm32f3_discovery::{
+    button,
+    button::interrupt::TriggerMode,
+    leds::Leds,
+    stm32f3xx_hal::{interrupt, pac, prelude::*},
+    switch_hal::ToggleableOutputSwitch,
+    wait_for_interrupt,
+};
+
+static USER_BUTTON_PRESSED: AtomicBool = AtomicBool::new(false);
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
+}
+
+#[interrupt]
+fn EXTI0() {
+    button::interrupt::clear();
+    USER_BUTTON_PRESSED.store(true, Ordering::Relaxed);
 }
 
 #[cortex_m_rt::entry]
@@ -34,8 +47,13 @@ fn main() -> ! {
         &mut gpioe.otyper,
     );
 
+    button::interrupt::enable(&dp.EXTI, &dp.SYSCFG, TriggerMode::Rising);
+
     loop {
-        leds.ld3.toggle().ok();
-        cortex_m::asm::delay(1_000_000);
+        if USER_BUTTON_PRESSED.swap(false, Ordering::AcqRel) {
+            leds.ld3.toggle().ok();
+        }
+
+        wait_for_interrupt();
     }
 }
