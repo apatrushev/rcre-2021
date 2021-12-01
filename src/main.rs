@@ -5,12 +5,14 @@
 
 extern crate rtic;
 
+use core::sync::atomic::{self, Ordering};
 use panic_halt as _;
+use rtt_target::{rprintln, rtt_init_print};
 use stm32f3_discovery::{
     button,
     button::interrupt::TriggerMode,
     leds::Leds,
-    stm32f3xx_hal::{prelude::*},
+    stm32f3xx_hal::prelude::*,
     switch_hal::ToggleableOutputSwitch,
 };
 
@@ -22,6 +24,9 @@ const APP: () = {
 
     #[init]
     fn init(ctx: init::Context) -> init::LateResources {
+        rtt_init_print!();
+        rprintln!("Starting");
+
         let mut rcc = ctx.device.RCC.constrain();
         let mut gpioe = ctx.device.GPIOE.split(&mut rcc.ahb);
 
@@ -44,11 +49,20 @@ const APP: () = {
             TriggerMode::Rising,
         );
 
+        rprintln!("Started");
         init::LateResources { leds }
+    }
+
+    #[idle]
+    fn idle(_: idle::Context) -> ! {
+        loop {
+            atomic::compiler_fence(Ordering::SeqCst);
+        }
     }
 
     #[task(binds = EXTI0, resources = [leds])]
     fn button_click(ctx: button_click::Context) {
+        rprintln!("Click");
         button::interrupt::clear();
         ctx.resources.leds.ld3.toggle().ok();
     }

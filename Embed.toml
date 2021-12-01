@@ -1,0 +1,5 @@
+[default.general]
+connect_under_reset = true
+
+[default.rtt]
+enabled = true
