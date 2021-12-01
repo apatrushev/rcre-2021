@@ -8,5 +8,7 @@ edition = "2018"
 [dependencies]
 cortex-m = "0.7.3"
 cortex-m-rt = "0.6.15"
-stm32f3 = { version = "0.14.0", features = ["stm32f303"] }
+cortex-m-rtic = "0.5.9"
+panic-halt = "0.2.0"
+stm32f3 = { version = "0.14.0", features = [ "stm32f303" ] }
 stm32f3-discovery = "0.7.2"
